@@ -474,6 +474,7 @@ function getStylePoolField(s,f){if(s.includes(" × ")){const p=s.split(" × ").m
 
 function resolveAudiences(){const base=audienciaSetEl.value;const multi=audienciaMultiEl.value==="si";const recent=prevPicks.audiencias||[];const result={},autos=[];K.forEach(k=>{if(audLocks[k]&&audLocks[k]!=="Auto")result[k]=audLocks[k];else autos.push(k);});if(!autos.length)return result;const used=Object.values(result);if(multi){let pool=AUD_NAMES.filter(a=>!recent.includes(a)&&!used.includes(a));if(pool.length<autos.length)pool=AUD_NAMES.filter(a=>!used.includes(a));if(!pool.length)pool=AUD_NAMES.slice();const picks=pickDistinct(autos,pool);autos.forEach(k=>result[k]=picks[k]);}else{let pick;if(base!=="Auto")pick=base;else{let pool=AUD_NAMES.filter(a=>!recent.includes(a));if(!pool.length)pool=AUD_NAMES.slice();pick=pool[Math.floor(Math.random()*pool.length)];}autos.forEach(k=>result[k]=pick);}return result;}
 function audLine(a){const P=AUD_PROFILES[a]||AUD_PROFILES.unisex;return "perfil: "+P.perfil+" · códigos: "+P.codigos+" · rechaza: "+P.rechaza+" · contexto: "+P.contexto+" · DIRECTIVA: "+P.directiva;}
+function contactSheetRules(){const product=productEl.value;const mockups=product==="DISPLATE"?"dos mockups de placa mural (frontal y en ambiente)":"dos mockups de "+(product==="HOODIE"?"hoodie":"camiseta")+" (uno oscuro y otro claro)";return "SALIDA: una sola lámina horizontal con tres paneles iguales 01A/B/C. Encabezado común: serie/concepto · MISMO ADN, TRES DIRECCIONES. Cada panel: ID + estilo, arte grande, "+mockups+", zoom de impresión y ficha breve y legible con concepto, mensaje, fundamento, dirección y paleta. Arte dominante; retícula y márgenes consistentes. Respeta literalmente los textos y datos del encargo; no inventes marca, datos, microtexto, tratamientos ni variantes.";}
 
 function shuffled(a){return [...a].sort(()=>Math.random()-0.5);}
 function resolveEstilosIntelligent(domains){const fixed={},auto=[];K.forEach(k=>{const v=estiloLocks[k];if(v&&v!=="Auto")fixed[k]=v;else auto.push(k);});if(!auto.length)return fixed;const cand=STYLE_CANDIDATES[domains[0]]||ESTILOS_LIST;const recent=prevPicks.estilos||[];
@@ -526,6 +527,13 @@ if(statusEl){if(!isVar){const es=passed?bestM_est(bm):"revisa advertencias";stat
 function bestM_est(m){return m.estilos.join(" · ");}
 
 function fmtRules(prof,isVar,conservarPaleta,textosImagen,esencia,sustituir){
+if(fmtDense){let d="FIJO EN A/B/C: mismo concepto, mensaje, "+prof.adnVerdad+", dominio, función simbólica e intención emocional.\n";
+d+="TRES DIRECCIONES: cambia objeto, arquitectura, composición, layout, tipografía, tinta, paleta e integración texto–símbolo; cada tarjeta debe ser distinta y coherente.\n";
+d+="TEXTO Y AUDIENCIA: texto integrado a la composición y legible, nunca microtexto. Respeta códigos y rechazos de cada audiencia; si la audiencia infantil rechaza sufrimiento, conserva la verdad teológica y expresa el costo de la cruz como pacto, entrega y vida recibida, sin sangre literal.\n";
+d+="PRODUCTO: adapta escala, composición y placement al producto indicado.\n";
+if(isVar){d+="VARIACIÓN: mismo ADN; no copies composición, encuadre ni técnica. ";d+=sustituir?"sustituye el símbolo por tres objetos nuevos con la misma función. ":"redibuja el símbolo conservando su función, sin copiar la silueta. ";d+=textosVarEl.value==="imagen"?"conserva las palabras exactas. ":textosVarEl.value==="mensaje"?"reformula sin cambiar el mensaje. ":"redacta texto nuevo fiel al concepto. ";d+=conservarPaleta?"conserva la paleta. ":"renueva la paleta. ";d+="\n";}
+if(prof.esFe)d+="GOSPEL: doctrina trinitaria; Cristo al centro. Sin herejías ni arte cristiano genérico.\n";else d+="NICHO: "+prof.constitucion.replace(/\n/g," ")+"\n";
+return d;}
 let o="ADN IGUAL EN A/B/C (PROHIBIDO CAMBIAR): concepto · mensaje · "+prof.adnVerdad+" · dominio semántico · función simbólica · intención emocional.\n";
 o+="CAMBIAR SIEMPRE ENTRE A/B/C: objeto, arquitectura, layout, composición, jerarquía, tipografía, escala, densidad, técnica, tratamiento de tinta, paleta, forma del símbolo, disposición de los textos y fusión texto↔símbolo.\n";
 o+="DIFERENCIA DURA: layout, tipografía, tratamiento de tinta, forma del símbolo, fusión texto↔símbolo y fondo de color NUNCA se repiten entre A/B/C. Tres versiones del mismo póster = RECHAZAR; tres diseños de una misma colección = APROBAR.\n";
@@ -541,7 +549,16 @@ else{o+="CONSTITUCIÓN DEL NICHO: "+prof.constitucion.replace(/\n/g," ")+"\n";}
 o+="OBJETOS: nacen del dominio indicado del banco del nicho (+ banco común); combinaciones solo dentro del mismo dominio. CADENA: nicho→mensaje→función→concepto→objeto→dirección→estilo→técnica→composición→tipografía→producto→QA.\n";
 return o;}
 
-function fmtVariant(v,i,isVar){let o="### "+N[i]+" — "+v.estilo+" | audiencia: "+v.audiencia+"\n";
+function fmtVariant(v,i,isVar){if(fmtDense){let d="### "+N[i]+" · "+v.estilo+" · "+v.audiencia+"\n";
+d+="OBJETO: "+v.objeto+" ("+v.disposicionObjetos+")\n";
+d+="DIRECCIÓN: "+v.arquitectura+"; "+v.composicion+"; "+v.layout+"\n";
+d+="ARTE: "+v.formaSimbolo+"; "+v.tecnica+"; "+v.tratamiento+"; "+v.paleta+"\n";
+d+="TEXTO: "+v.textoPrincipal+" / "+v.textoApoyo+" / "+v.textoTerciario+" · "+v.tipografia+"\n";
+d+="INTEGRACIÓN: "+v.distribucionTexto+"; "+v.integracionTexto+"; "+v.relacion+"\n";
+d+="JERARQUÍA/ESPACIO: "+v.jerarquia+"; "+v.densidad+"; "+v.negativeSpace+" · PRODUCTO: "+v.placement+"\n";
+const audDense=AUD_PROFILES[v.audiencia]||AUD_PROFILES.unisex;d+="AUDIENCIA: "+audDense.directiva+"; evitar "+audDense.rechaza+"\n";
+const satDense=SATURACION[getStyleBase(v.estilo)];if(satDense)d+="EVITAR: "+satDense.join(" · ")+"\n";return d;}
+let o="### "+N[i]+" — "+v.estilo+" | audiencia: "+v.audiencia+"\n";
 o+="OBJETO: "+v.objeto+" | RELACIÓN OBJETOS: "+v.disposicionObjetos+"\n";
 o+="ARQUITECTURA: "+v.arquitectura+" | COMPOSICIÓN: "+v.composicion+" | LAYOUT: "+v.layout+"\n";
 o+="FORMA SÍMBOLO: "+v.formaSimbolo+" | TINTA: "+v.tratamiento+" | TÉCNICA: "+v.tecnica+"\n";
@@ -561,6 +578,7 @@ const sustituir=simboloVarEl.value==="sustituir";const textosImagen=textosVarEl.
 let o="/VARIATION-FROM-IMAGE — TRES PRODUCTOS NUEVOS (01A · 01B · 01C)\n";
 o+="MODO: variación creativa | NICHO: "+prof.nombre+" | PRODUCTO: "+productEl.value+" | SET: "+(setEl.value||"—")+"\n";
 o+="IMAGEN DE REFERENCIA: adjunta en el chat | ESQUEMAS: 01A "+V.A.estilo+" · 01B "+V.B.estilo+" · 01C "+V.C.estilo+"\n";
+o+="\n"+contactSheetRules()+"\n";
 o+="CONTRATO DE REFERENCIA: toma de la imagen el concepto, mensaje y símbolo; el texto se conserva o transforma según la opción elegida. Nunca copies su composición ni técnica. ";
 if(textosVarEl.value==="imagen")o+="TEXTO: conserva literalmente las palabras legibles de la imagen; cambia la jerarquía, tipografía, escala, composición e integración. ";else if(textosVarEl.value==="mensaje")o+="TEXTO: conserva el mensaje central y el sentido del texto secundario, con redacción nueva y fiel; no añadas afirmaciones ni inventes referencias. ";else o+="TEXTO: redacta textos nuevos coherentes con el concepto y mensaje, tres niveles con peso, sin microtexto. ";
 if(conservarPaleta)o+="COLOR: conserva la paleta de la imagen como identidad; solo redistribúyela según cada layout. ";else o+="COLOR: paleta nueva por variante (se declara en cada una). ";
@@ -578,6 +596,7 @@ let o="/CONTACTSHEET — 3 DIRECCIONES · MISMO CONCEPTO · NADA CLONADO\n";
 o+="NICHO: "+prof.nombre+" | PRODUCTO: "+productEl.value+" | SET: "+(setEl.value||"—")+"\n";
 o+="SERIE: "+(serieEl.value||"—")+" | CONCEPTO: "+conceptEl.value+" | MENSAJE: "+messageEl.value+" | "+prof.escrituraLbl.toUpperCase()+": "+scriptureEl.value+"\n";
 o+="ADN IGUAL EN A/B/C: concepto · mensaje · "+prof.adnVerdad+" · dominio ("+V.A.dominio+") · función ("+V.A.funcionSimbolica+") · intención ("+V.A.intencionEmocional+")\n";
+o+="\n"+contactSheetRules()+"\n";
 o+="---\nREGLAS (INQUEBRANTABLES):\n"+fmtRules(prof,false,false,false,"",false);
 o+="---\n";K.forEach((k,i)=>{o+="\n"+fmtVariant(V[k],i,false);});
 if(outEl)outEl.value=o;
@@ -685,17 +704,20 @@ var done=(fixes>0?' · '+fixes+' ajuste(s) aplicado(s)':'')+(verds.length?' · v
 if(st)st.innerHTML+='<span style="color:var(--acc-ink)"> · 🤖 '+done+'</span>';}
 function escA(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
 function slotHTML(s,i){var pr=['Groq','OpenRouter','Gemini'].map(function(p){return '<option'+(s.provider===p?' selected':'')+'>'+p+'</option>';}).join('');
-return '<div class="aiSlot" data-i="'+i+'"><div class="sh"><span>Respaldo '+(i+1)+(i===0?' (primero)':'')+'</span><button class="ghost" data-clear="'+i+'" style="font-size:11px;padding:3px 8px">Vaciar</button></div><div class="frow"><div><label>Proveedor</label><select data-f="provider">'+pr+'</select></div><div><label>Modelo</label><input data-f="model" value="'+escA(s.model)+'"></div></div><div class="frow"><div><label>Clave API</label><input data-f="key" type="password" value="'+escA(s.key)+'" placeholder="pegar clave…"></div><div><label>Espera</label><select data-f="timeoutMs">'+[8000,10000,12000,15000].map(function(t){return '<option value="'+t+'"'+(s.timeoutMs===t?' selected':'')+'>'+(t/1000)+'s</option>';}).join('')+'</select></div></div></div>';}
+return '<div class="aiSlot" data-i="'+i+'"><div class="sh"><span>Prioridad '+(i+1)+(i===0?' · principal':' · respaldo')+'</span><div style="display:flex;gap:4px"><button class="ghost" data-move="up" data-i="'+i+'"'+(i===0?' disabled':'')+' title="Subir prioridad" style="font-size:11px;padding:3px 8px">↑</button><button class="ghost" data-move="down" data-i="'+i+'"'+(i===2?' disabled':'')+' title="Bajar prioridad" style="font-size:11px;padding:3px 8px">↓</button><button class="ghost" data-clear="'+i+'" style="font-size:11px;padding:3px 8px">Vaciar clave</button></div></div><div class="frow"><div><label>Proveedor</label><select data-f="provider">'+pr+'</select></div><div><label>Modelo</label><input data-f="model" value="'+escA(s.model)+'"></div></div><div class="frow"><div><label>Clave API</label><input data-f="key" type="password" value="'+escA(s.key)+'" placeholder="pegar clave…"></div><div><label>Espera</label><select data-f="timeoutMs">'+[8000,10000,12000,15000].map(function(t){return '<option value="'+t+'"'+(s.timeoutMs===t?' selected':'')+'>'+(t/1000)+'s</option>';}).join('')+'</select></div></div></div>';}
+function readPanelSlots(){return Array.prototype.map.call(panel.querySelectorAll('.aiSlot'),function(b){var q=function(f){return b.querySelector('[data-f="'+f+'"]');};return {provider:q('provider').value,model:q('model').value.trim(),key:q('key').value.trim(),timeoutMs:parseInt(q('timeoutMs').value,10)||10000};});}
+function bindSlotActions(){panel.querySelectorAll('[data-move]').forEach(function(b){b.onclick=function(){var arr=readPanelSlots(),i=parseInt(b.getAttribute('data-i'),10),j=b.getAttribute('data-move')==='up'?i-1:i+1;if(j<0||j>=arr.length)return;var t=arr[i];arr[i]=arr[j];arr[j]=t;panel.querySelector('#aiSlots').innerHTML=arr.map(slotHTML).join('');bindSlotActions();};});panel.querySelectorAll('[data-clear]').forEach(function(b){b.onclick=function(){panel.querySelector('.aiSlot[data-i="'+b.getAttribute('data-clear')+'"] [data-f="key"]').value='';};});}
 function openPanel(){if(panel){panel.style.display='block';return;}
 panel=document.createElement('div');panel.id='aiPanel';panel.className='fpanel';
 var sl=getSlots();
-panel.innerHTML='<div style="font-weight:700;color:var(--acc-ink);margin-bottom:4px">🤖 Revisor con IA (opcional)</div><div class="hint" style="margin:0 0 6px">Si un proveedor falla, el siguiente toma el turno. Recomendado: clave gratuita de <b>groq.com</b> en el respaldo 1.</div>'+slotHTML(sl[0],0)+slotHTML(sl[1],1)+slotHTML(sl[2],2)+'<label style="display:flex;align-items:center;gap:6px;margin:10px 0 4px"><input type="checkbox" id="ai-auto"'+(isAuto()?' checked':'')+'> Revisar automáticamente al crear</label><label style="display:flex;align-items:center;gap:6px;margin:0 0 8px"><input type="checkbox" id="ai-apply"'+(autoApply()?' checked':'')+'> Aplicar correcciones automáticamente (si lo desmarcas, solo se sugieren)</label><div style="display:flex;gap:6px"><button id="ai-save" class="primary" style="flex:1;padding:8px">Guardar</button><button id="ai-close" class="ghost">✕</button></div>';
+panel.innerHTML='<div style="font-weight:700;color:var(--acc-ink);margin-bottom:4px">🤖 Revisor con IA (opcional)</div><div class="hint" style="margin:0 0 6px">La prioridad 1 es el modelo principal. Si falla, se intenta el siguiente. Usa ↑ y ↓ para cambiar el orden.</div><div id="aiSlots">'+sl.map(slotHTML).join('')+'</div><label style="display:flex;align-items:center;gap:6px;margin:10px 0 4px"><input type="checkbox" id="ai-auto"'+(isAuto()?' checked':'')+'> Revisar automáticamente al crear</label><label style="display:flex;align-items:center;gap:6px;margin:0 0 8px"><input type="checkbox" id="ai-apply"'+(autoApply()?' checked':'')+'> Aplicar correcciones automáticamente (si lo desmarcas, solo se sugieren)</label><div style="display:flex;gap:6px"><button id="ai-save" class="primary" style="flex:1;padding:8px">Guardar</button><button id="ai-close" class="ghost">✕</button></div>';
 document.body.appendChild(panel);
-panel.querySelector('#ai-save').onclick=function(){var arr=[];panel.querySelectorAll('.aiSlot').forEach(function(b){var q=function(f){return b.querySelector('[data-f="'+f+'"]');};arr.push({provider:q('provider').value,model:q('model').value.trim(),key:q('key').value.trim(),timeoutMs:parseInt(q('timeoutMs').value,10)||10000});});
+bindSlotActions();
+panel.querySelector('#ai-save').onclick=function(){var arr=readPanelSlots();
 LS.setItem(SLOTS_KEY,JSON.stringify(arr));LS.setItem(AUTO_KEY,panel.querySelector('#ai-auto').checked?'1':'0');LS.setItem(APPLY_KEY,panel.querySelector('#ai-apply').checked?'1':'0');
 var b=document.getElementById('aiCfgB');if(b)b.textContent='⚙ '+activeSlots().length;panel.style.display='none';};
 panel.querySelector('#ai-close').onclick=function(){panel.style.display='none';};
-panel.querySelectorAll('[data-clear]').forEach(function(b){b.onclick=function(){panel.querySelector('.aiSlot[data-i="'+b.getAttribute('data-clear')+'"] [data-f="key"]').value='';};});}
+}
 function build(){
 bar=document.createElement('div');bar.id='aiBar';
 bar.innerHTML='<div id="aiBarBody"><button id="aiRevB" class="primary" style="font-size:12.5px;padding:8px 13px">🤖 Revisar con IA</button><button id="aiCfgB" class="ghost" style="font-size:12px;padding:8px 11px">⚙ '+activeSlots().length+'</button><button id="aiMinB" class="ghost" style="font-size:12px;padding:8px 11px" title="Minimizar">—</button></div><button id="aiChipB" class="primary" style="font-size:13px;padding:8px 12px" title="Expandir">🤖</button>';
