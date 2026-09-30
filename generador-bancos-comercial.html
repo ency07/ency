@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generador de bancos — Comercial</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;padding:20px;background:#101318;color:#e9edf2;font:14px/1.45 "Segoe UI",sans-serif}h1{margin:0 0 5px;color:#9ed7bc;font-size:21px}.sub,.hint{color:#a5afbb;font-size:12px}.panel{margin:14px 0;padding:14px;background:#191e25;border:1px solid #303a45;border-radius:10px}.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}button{padding:8px 11px;border:1px solid #465361;border-radius:6px;background:#242d37;color:#edf2f6;cursor:pointer}button:hover{background:#303c49}button.primary{background:#244735;border-color:#397253;color:#a9f0c7;font-weight:700}button.danger{color:#ffaaaa}input,textarea{padding:8px;border:1px solid #3a4652;border-radius:6px;background:#0d1116;color:#eef2f6}textarea{width:100%;min-height:105px;margin-top:8px}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.tab{padding:6px 10px;border:1px solid #394552;border-radius:6px;background:#161b21;color:#bac4cf;cursor:pointer}.tab.on{border-color:#71b996;background:#20382c;color:#d2ffe4;font-weight:700}table{width:100%;border-collapse:collapse}td{padding:6px 4px;border-bottom:1px solid #2a323b}td:first-child{width:100%}.obj{width:100%}.count,#status{margin-top:9px;color:#a5afbb;font-size:12px}#status{color:#89dfae}.hidden{display:none}
+</style>
+</head>
+<body>
+<h1>Generador de bancos · Comercial</h1>
+<div class="sub">Edita el banco comercial por dominio y expórtalo como JSON o como <code>window.COMERCIAL_BANK</code>. Este archivo es independiente del generador Gospel.</div>
+<section class="panel row">
+  <button id="loadBtn">Cargar banco JSON</button><input id="file" class="hidden" type="file" accept=".json,application/json">
+  <button id="seedBtn">Añadir semilla comercial</button>
+  <button id="pasteBtn">Pegar JSON</button>
+  <span class="hint" id="loadInfo"></span>
+  <textarea id="paste" class="hidden" placeholder='Pega aquí un JSON con {"domains":{"OFICIO":[...]}}'></textarea>
+  <button id="applyPaste" class="primary hidden">Aplicar JSON</button>
+</section>
+<section class="panel">
+  <div class="tabs" id="tabs"></div>
+  <div class="row"><input id="newDomain" placeholder="NUEVO_DOMINIO"><button id="addDomain">+ Dominio</button><button id="addObject">+ Objeto</button><button id="bulkBtn">Pegado masivo</button><button id="dedup">Deduplicar</button><button id="removeDomain" class="danger">Eliminar dominio</button></div>
+  <textarea id="bulk" class="hidden" placeholder="Un objeto por línea"></textarea><button id="applyBulk" class="primary hidden">Agregar objetos</button>
+  <div class="count" id="count"></div>
+  <table id="table"></table>
+</section>
+<section class="panel">
+  <div class="row"><button id="exportJson" class="primary">Descargar commercial-bank.json</button><button id="exportJs">Descargar commercial-object-bank.js</button></div>
+  <div id="status"></div>
+</section>
+<script>
+'use strict';
+var SEED={
+ OFICIO:["el mandil colgado que guarda cien historias","herramientas ordenadas como índice de un oficio","la mesa de trabajo al amanecer, antes del primer cliente","el carnet gastado con foto de veinte años atrás","manos con callos sosteniendo el fruto del propio trabajo","el letrero pintado a mano que lleva la firma del barrio","la boleta del primer pago enmarcada","el delantal que heredó el oficio del padre","caja registradora que aprendió el nombre de cada cliente","el café de las cinco de la mañana que enciende el negocio"],
+ METAS:["la pared de la maratón: 42 kilómetros escritos a mano","el reloj que marca la hora en que empezó todo","una escalera donde cada peldaño lleva una fecha","la meta escrita en el espejo con marcador","el último intento que sí salió, guardado como trofeo","la bandera propia en la cima de la montaña","la lista de metas tachada línea por línea","el podio improvisado en la sala de la casa","la primera medalla guardada como oro","el calendario con una sola palabra repetida: TODAVÍA"],
+ COMUNIDAD:["la mesa larga donde caben todos","el grupo que nunca duerme, dibujado en un solo gesto","balón de barrio con nombre de todos en el cuero","la silla extra que siempre se agrega","la foto del equipo en la pared del local","la receta de la abuela escrita con sus tachaduras","fuego de campamento rodeado de sillas desiguales","el coro del barrio desentonando a gusto","manos distintas sosteniendo la misma tarea","el local pequeño que siempre tiene espacio para uno más"],
+ VIAJE:["el mapa con los lugares tachados a lápiz","mochila abierta con la ruta asomando","el kilómetro cero pintado en la acera","brújula que apunta a casa","el tanque lleno y ninguna dirección elegida","huellas de neumático que se convierten en ruta","la postal enviada desde el lugar equivocado y amada igual","carretera que se hace nube al horizonte","el sello del pasaporte como tatuaje de época","acampar bajo un cielo que no cobra por las estrellas"],
+ CELEBRACION:["las velas del pastel contando los años buenos","copas chocando en el momento exacto","el confeti que aún cae del techo del recuerdo","la foto grupal con todos en su mejor segundo","la camiseta firmada por los que estuvieron","papel picado que aún resiste el viento","el regalo hecho a mano envuelto en periódico","la hora feliz que se convirtió en tradición","un pastel cuyo ingrediente real es la gente","el brindis de los que empezaron sin nada"]
+};
+var state={version:'1.0',domains:JSON.parse(JSON.stringify(SEED))},current='OFICIO';
+function clean(x){return String(x==null?'':x).trim()}function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}function list(){return state.domains[current]||[]}
+function say(s){document.getElementById('status').textContent=s}
+function render(){var keys=Object.keys(state.domains);if(!state.domains[current])current=keys[0]||'';document.getElementById('tabs').innerHTML=keys.map(function(k){return '<button class="tab '+(k===current?'on':'')+'" data-key="'+esc(k)+'">'+esc(k)+' ('+state.domains[k].length+')</button>'}).join('');document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){current=b.dataset.key;render()}});var L=list();document.getElementById('table').innerHTML=L.map(function(o,i){return '<tr><td><input class="obj" data-i="'+i+'" value="'+esc(o)+'"></td><td><button class="danger del" data-i="'+i+'">Quitar</button></td></tr>'}).join('');document.querySelectorAll('.obj').forEach(function(i){i.onchange=function(){L[+i.dataset.i]=clean(i.value);render()}});document.querySelectorAll('.del').forEach(function(b){b.onclick=function(){L.splice(+b.dataset.i,1);render()}});var total=keys.reduce(function(n,k){return n+state.domains[k].length},0);document.getElementById('count').textContent='Dominio: '+current+' · '+L.length+' objetos · Total: '+total}
+function applyJSON(raw){try{var p=JSON.parse(raw),d=p.domains||p,out={};Object.keys(d).forEach(function(k){if(Array.isArray(d[k]))out[k.toUpperCase()]=d[k].map(function(x){return clean(typeof x==='string'?x:x&&x.o)}).filter(Boolean)});if(!Object.keys(out).length)throw Error('No se encontraron dominios con listas de objetos.');state={version:p.version||'1.0',domains:out};current=Object.keys(out)[0];document.getElementById('loadInfo').textContent='Banco cargado: '+Object.keys(out).length+' dominios';render();say('JSON cargado.')}catch(e){say('No se pudo cargar el JSON: '+e.message)}}
+function download(name,text,type){var a=document.createElement('a'),u=URL.createObjectURL(new Blob([text],{type:type||'application/json'}));a.href=u;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(u)},500)}
+document.getElementById('loadBtn').onclick=function(){document.getElementById('file').click()};document.getElementById('file').onchange=function(e){var f=e.target.files[0];if(f){var r=new FileReader();r.onload=function(){applyJSON(r.result)};r.readAsText(f)}};
+document.getElementById('seedBtn').onclick=function(){Object.keys(SEED).forEach(function(k){if(!state.domains[k])state.domains[k]=[];SEED[k].forEach(function(o){if(state.domains[k].indexOf(o)<0)state.domains[k].push(o)})});render();say('Semilla comercial añadida sin duplicar objetos.')};
+document.getElementById('pasteBtn').onclick=function(){document.getElementById('paste').classList.toggle('hidden');document.getElementById('applyPaste').classList.toggle('hidden')};document.getElementById('applyPaste').onclick=function(){applyJSON(document.getElementById('paste').value)};
+document.getElementById('addDomain').onclick=function(){var k=clean(document.getElementById('newDomain').value).toUpperCase().replace(/\s+/g,'_');if(!k)return;if(!state.domains[k])state.domains[k]=[];current=k;document.getElementById('newDomain').value='';render()};document.getElementById('addObject').onclick=function(){list().push('');render()};
+document.getElementById('bulkBtn').onclick=function(){document.getElementById('bulk').classList.toggle('hidden');document.getElementById('applyBulk').classList.toggle('hidden')};document.getElementById('applyBulk').onclick=function(){var a=document.getElementById('bulk').value.split(/\r?\n/).map(clean).filter(Boolean);list().push.apply(list(),a);document.getElementById('bulk').value='';render();say(a.length+' objetos agregados a '+current+'.')};
+document.getElementById('dedup').onclick=function(){var seen={};state.domains[current]=list().filter(function(x){var k=clean(x).toLocaleLowerCase();if(!k||seen[k])return false;seen[k]=1;return true});render();say('Dominio deduplicado.')};document.getElementById('removeDomain').onclick=function(){if(Object.keys(state.domains).length<=1){say('Debe quedar al menos un dominio.');return}delete state.domains[current];current=Object.keys(state.domains)[0];render();say('Dominio eliminado.')};
+document.getElementById('exportJson').onclick=function(){download('commercial-bank.json',JSON.stringify({version:state.version,generated:new Date().toISOString(),domains:state.domains},null,2));say('Banco JSON descargado.')};document.getElementById('exportJs').onclick=function(){var js='/* Banco de objetos comercial — exportado por Generador de bancos Comercial */\nwindow.COMERCIAL_BANK = '+JSON.stringify(state.domains,null,2)+';\n';download('commercial-object-bank.js',js,'application/javascript');say('Banco JS descargado como window.COMERCIAL_BANK.')};render();
+</script>
+</body>
+</html>
