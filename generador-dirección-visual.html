@@ -1,0 +1,323 @@
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motor de Lenguajes Visuales — POD Gospel</title>
+<style>
+:root{
+  --bg:#0d0f12;--panel:#15181d;--panel2:#1b1f25;--line:#2b3038;
+  --text:#f3f4f6;--muted:#9da4af;--accent:#d8ff3e;--accent2:#8ea81f;
+  --danger:#ff6b6b;--shadow:0 14px 40px rgba(0,0,0,.28)
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#0b0d10,#11151a 55%,#0c0f12);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:1450px;margin:auto;padding:24px}
+header{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:22px}
+h1{font-size:28px;margin:0 0 5px;letter-spacing:-.04em}
+.subtitle{color:var(--muted)}
+.badge{border:1px solid var(--line);padding:8px 11px;border-radius:999px;color:var(--accent);font-size:12px}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:18px}
+.panel{background:rgba(21,24,29,.92);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.controls{padding:18px;position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);overflow:auto}
+.workspace{padding:18px}
+.section{padding:16px;border:1px solid var(--line);border-radius:13px;background:var(--panel);margin-bottom:14px}
+.section h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;margin:0 0 12px;color:#fff}
+label{display:block;color:var(--muted);font-size:12px;margin:11px 0 6px}
+input,textarea,select{width:100%;background:#0d1014;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:10px 11px;outline:none}
+textarea{min-height:72px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.checkgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:block;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#101318;color:#c7ccd3;font-size:12px;transition:.15s}
+.chip input:checked+span{border-color:var(--accent);background:rgba(216,255,62,.08);color:#fff;box-shadow:inset 0 0 0 1px var(--accent2)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{border:1px solid var(--line);background:#20252c;color:#fff;border-radius:9px;padding:10px 13px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0a0c0e;font-weight:800}
+.btn:hover{filter:brightness(1.08)}
+.hero{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.hero h2{margin:0;font-size:18px}
+.mode{display:flex;background:#0e1115;border:1px solid var(--line);border-radius:10px;padding:3px}
+.mode button{border:0;background:transparent;color:var(--muted);padding:8px 10px;border-radius:7px}
+.mode button.active{background:var(--accent);color:#0b0d10;font-weight:800}
+.formula{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:13px}
+.card b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:7px}
+.card div{font-size:13px;color:#e5e7eb}
+.output{background:#080a0d;border:1px solid #31363e;border-radius:12px;padding:16px;white-space:pre-wrap;font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;line-height:1.55;min-height:420px;overflow:auto}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.toast{position:fixed;right:22px;bottom:22px;background:#e8ff8a;color:#0a0c0e;padding:11px 14px;border-radius:9px;font-weight:700;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.controls{position:static;max-height:none}.formula{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.app{padding:12px}.row,.checkgrid,.formula{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <h1>Motor de Lenguajes Visuales</h1>
+    <div class="subtitle">Dirección creativa para series POD Gospel — MISMO ADN ≠ MISMA IMAGEN</div>
+  </div>
+  <div class="badge">v1.0 · CONTACTSHEET</div>
+</header>
+
+<div class="grid">
+<aside class="panel controls">
+  <div class="section">
+    <h2>01 · ADN de la serie</h2>
+    <label>Serie</label><input id="serie" placeholder="Ej. GRACE / GUERRERO / ADORACIÓN">
+    <div class="row">
+      <div><label>Concepto</label><input id="concepto" placeholder="Ej. Gracia"></div>
+      <div><label>Audiencia</label><input id="audiencia" placeholder="Ej. Gospel streetwear"></div>
+    </div>
+    <label>Mensaje / verdad</label><textarea id="mensaje" placeholder="¿Qué debe comunicar la serie?"></textarea>
+    <div class="row">
+      <div><label>Producto</label><select id="producto">
+        <option>CAMISETA SOFT</option><option>CAMISETA OVERSIZE</option><option>HOODIE</option><option>DISPLATE</option><option>POSTER</option><option>TOTE</option><option>CAP</option>
+      </select></div>
+      <div><label>Idioma</label><select id="idioma"><option>ESPAÑOL</option><option>INGLÉS</option></select></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>02 · Modo</h2>
+    <div class="mode">
+      <button id="manualBtn" class="active">MANUAL</button>
+      <button id="creativeBtn">SELECCIÓN CREATIVA</button>
+    </div>
+    <div class="note">Selección creativa evita convertir una combinación en fórmula fija. El sistema mezcla familias según el concepto.</div>
+  </div>
+
+  <div class="section">
+    <h2>03 · Familias / lenguajes</h2>
+    <div id="families"></div>
+  </div>
+
+  <div class="section">
+    <h2>04 · Tratamiento</h2>
+    <div class="checkgrid" id="treatments"></div>
+  </div>
+
+  <div class="section">
+    <h2>05 · Técnica</h2>
+    <div class="checkgrid" id="techniques"></div>
+  </div>
+
+  <div class="section">
+    <h2>06 · Composición</h2>
+    <div class="checkgrid" id="compositions"></div>
+  </div>
+
+  <div class="section">
+    <h2>07 · Tipografía</h2>
+    <div class="checkgrid" id="typefaces"></div>
+  </div>
+
+  <div class="section">
+    <h2>08 · Paleta</h2>
+    <div class="checkgrid" id="palettes"></div>
+  </div>
+
+  <div class="section">
+    <h2>09 · Reglas</h2>
+    <textarea id="rules">No repetir composición entre piezas. El texto forma parte de la arquitectura visual. No usar microtexto ilegible. Mantener claridad comercial. La imagen debe conservar el ADN teológico y de marca. MISMO ADN ≠ MISMA IMAGEN.</textarea>
+    <div class="actions">
+      <button class="btn primary" onclick="generate()">GENERAR DIRECCIÓN</button>
+      <button class="btn" onclick="resetAll()">REINICIAR</button>
+    </div>
+  </div>
+</aside>
+
+<main class="panel workspace">
+  <div class="hero">
+    <div><h2>Dirección visual generada</h2><div class="note">Usa esto como brief de arte antes del CONTACTSHEET.</div></div>
+    <button class="btn primary" onclick="copyPrompt()">COPIAR PROMPT</button>
+  </div>
+
+  <div class="section">
+    <h2>Fórmula seleccionada</h2>
+    <div class="formula" id="formula"></div>
+  </div>
+
+  <div class="section">
+    <h2>Prompt listo para /CONTACTSHEET</h2>
+    <div class="output" id="output"></div>
+  </div>
+</main>
+</div>
+</div>
+<div class="toast" id="toast">Copiado</div>
+
+<script>
+const data={
+"families":{
+"CULTURA URBANA":["Streetwear","Skate","Hip-Hop","Punk","Grunge","Graffiti","Utility"],
+"HERITAGE":["Collegiate","Athletic","Workwear","Western","Americana","Vintage Gospel"],
+"MODA / EDITORIAL":["Minimal","Editorial","Swiss / International","Luxury Graphic","Avant-Garde","Art Direction"],
+"ARTÍSTICO":["Tattoo","Woodblock","Engraving","Linocut","Poster Art","Collage","Hand-drawn"],
+"RETRO / NOSTALGIA":["70s","80s","90s","Y2K","Vintage Print","Retro Sports"],
+"NATURALEZA / LIFESTYLE":["Outdoor","Surf","Mountain","Adventure","Botanical"],
+"EXPERIMENTAL":["Brutalist","Constructivist","Experimental Typography","Abstract","Distorted Type","Digital"]
+},
+"treatments":["HEAVY","SOFT","MODERN","EXPRESSIVE","ICONIC","HERITAGE","RAW","CLEAN"],
+"techniques":["Screenprint","Stencil","Xerox","Vintage Ink","Linework","Engraving","Collage","Illustración gráfica","Hand lettering","Vector limpio","Texture print"],
+"compositions":["Monumental","Editorial asimétrica","Poster","Badge / Emblema","Vertical","Diagonal","Grid","Tipografía integrada","Símbolo dominante","Offset lateral","Stacked type","Open space"],
+"typefaces":["Condensed Sans","Bold Sans","Athletic Serif","Western Serif","Editorial Serif","Grotesk","Hand Lettering","Display Vintage","Monospace","Blackletter"],
+"palettes":["Alto contraste","Heritage","Monocromática","Washed vintage","Retro color","Tierra / natural","Negro + 1 acento","Cream + negro","Colores intensos","Neutros cálidos"]
+};
+
+let creative=false;
+let generated={};
+
+function renderChecks(id,arr,group){
+ const el=document.getElementById(id); el.innerHTML="";
+ arr.forEach((x,i)=>{
+   const key=(group||id)+"_"+i;
+   el.insertAdjacentHTML("beforeend",`<label class="chip"><input type="checkbox" value="${x}" data-group="${group||id}" id="${key}"><span>${x}</span></label>`);
+ });
+}
+function renderFamilies(){
+ const el=document.getElementById("families"); el.innerHTML="";
+ Object.entries(data.families).forEach(([fam,items],fi)=>{
+   const box=document.createElement("div"); box.style.marginBottom="13px";
+   box.innerHTML=`<div style="font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.08em;margin-bottom:6px">${fam}</div>`;
+   const grid=document.createElement("div"); grid.className="checkgrid";
+   items.forEach((x,i)=>{
+     const id=`fam_${fi}_${i}`;
+     grid.insertAdjacentHTML("beforeend",`<label class="chip"><input type="checkbox" value="${x}" data-family="${fam}" id="${id}"><span>${x}</span></label>`);
+   });
+   box.appendChild(grid);el.appendChild(box);
+ });
+}
+renderFamilies();
+renderChecks("treatments",data.treatments,"treatment");
+renderChecks("techniques",data.techniques,"technique");
+renderChecks("compositions",data.compositions,"composition");
+renderChecks("typefaces",data.typefaces,"typeface");
+renderChecks("palettes",data.palettes,"palette");
+
+document.getElementById("manualBtn").onclick=()=>setMode(false);
+document.getElementById("creativeBtn").onclick=()=>setMode(true);
+
+function setMode(v){
+ creative=v;
+ document.getElementById("manualBtn").classList.toggle("active",!v);
+ document.getElementById("creativeBtn").classList.toggle("active",v);
+ if(v) autoSelect();
+}
+
+function vals(selector){return [...document.querySelectorAll(selector+':checked')].map(x=>x.value)}
+function choose(arr,n=1){return arr[Math.floor(Math.random()*arr.length)].replace(/\s*\/\s*/g," / ")}
+function allLanguages(){return Object.values(data.families).flat()}
+function autoSelect(){
+ document.querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=false);
+ const concept=(document.getElementById("concepto").value+" "+document.getElementById("mensaje").value).toLowerCase();
+ let preferred=[];
+ if(/guerr|firme|armadura|batalla|victoria|fuerza/.test(concept)) preferred=["HERITAGE","CULTURA URBANA","ARTÍSTICO"];
+ else if(/gracia|salv|perd[oó]n|redim|amor|misericord/.test(concept)) preferred=["HERITAGE","RETRO / NOSTALGIA","MODA / EDITORIAL"];
+ else if(/ador|alabanza|santo|gloria|dios/.test(concept)) preferred=["ARTÍSTICO","HERITAGE","MODA / EDITORIAL"];
+ else if(/creaci[oó]n|naturaleza|jard[ií]n|monta[nñ]a/.test(concept)) preferred=["NATURALEZA / LIFESTYLE","ARTÍSTICO","RETRO / NOSTALGIA"];
+ else preferred=["CULTURA URBANA","HERITAGE","MODA / EDITORIAL"];
+ const families=preferred.slice(0,2);
+ families.forEach(f=>{
+   const items=data.families[f];
+   const chosen=items[Math.floor(Math.random()*items.length)];
+   const node=[...document.querySelectorAll('input[data-family]')].find(x=>x.value===chosen);
+   if(node) node.checked=true;
+ });
+ ["treatment","technique","composition","typeface","palette"].forEach((g)=>{
+   const source=data[g==="treatment"?"treatments":g==="technique"?"techniques":g==="composition"?"compositions":g==="typeface"?"typefaces":"palettes"];
+   const chosen=choose(source);
+   const node=[...document.querySelectorAll(`input[data-group="${g}"]`)].find(x=>x.value===chosen);
+   if(node) node.checked=true;
+ });
+ generate();
+}
+
+function generate(){
+ const serie=document.getElementById("serie").value||"SERIE SIN NOMBRE";
+ const concepto=document.getElementById("concepto").value||"—";
+ const audiencia=document.getElementById("audiencia").value||"—";
+ const mensaje=document.getElementById("mensaje").value||"—";
+ const producto=document.getElementById("producto").value;
+ const idioma=document.getElementById("idioma").value;
+ let langs=vals('input[data-family]:checked');
+ let treatment=vals('input[data-group="treatment"]:checked');
+ let technique=vals('input[data-group="technique"]:checked');
+ let composition=vals('input[data-group="composition"]:checked');
+ let typeface=vals('input[data-group="typeface"]:checked');
+ let palette=vals('input[data-group="palette"]:checked');
+ if(creative){
+   if(!langs.length) {autoSelect();return;}
+ } 
+ if(!langs.length) langs=["SELECCIÓN CREATIVA"];
+ if(!treatment.length) treatment=["SELECCIÓN CREATIVA"];
+ if(!technique.length) technique=["SELECCIÓN CREATIVA"];
+ if(!composition.length) composition=["SELECCIÓN CREATIVA"];
+ if(!typeface.length) typeface=["SELECCIÓN CREATIVA"];
+ if(!palette.length) palette=["SELECCIÓN CREATIVA"];
+
+ generated={serie,concepto,audiencia,mensaje,producto,idioma,langs,treatment,technique,composition,typeface,palette};
+ document.getElementById("formula").innerHTML=[
+   ["LENGUAJE",langs.join(" + ")],["TRATAMIENTO",treatment.join(" + ")],
+   ["TÉCNICA",technique.join(" + ")],["COMPOSICIÓN",composition.join(" + ")],
+   ["TIPOGRAFÍA",typeface.join(" + ")],["PALETA",palette.join(" + ")]
+ ].map(([a,b])=>`<div class="card"><b>${a}</b><div>${b}</div></div>`).join("");
+ const prompt=`/CONTACTSHEET — ${serie}
+
+NICHO: Gospel / cristiano
+PRODUCTO: ${producto}
+IDIOMA: ${idioma}
+SERIE: ${serie}
+CONCEPTO: ${concepto}
+MENSAJE / VERDAD: ${mensaje}
+AUDIENCIA: ${audiencia}
+
+LENGUAJE VISUAL: ${langs.join(" + ")}
+TRATAMIENTO: ${treatment.join(" + ")}
+TÉCNICA: ${technique.join(" + ")}
+COMPOSICIÓN: ${composition.join(" + ")}
+TIPOGRAFÍA: ${typeface.join(" + ")}
+PALETA: ${palette.join(" + ")}
+
+DIRECCIÓN:
+Crear una colección comercial donde el lenguaje visual traduzca el concepto y no funcione como una fórmula fija.
+Mantener MISMO ADN ≠ MISMA IMAGEN.
+Cada diseño debe tener una composición propia y una jerarquía tipográfica diferente cuando el concepto lo permita.
+El texto debe formar parte de la arquitectura del diseño, no parecer texto colocado encima.
+Evitar repetir estructura, símbolo dominante, posición del texto o tratamiento entre piezas.
+Priorizar legibilidad, identidad de marca, diferenciación y viabilidad comercial para POD.
+
+REGLAS:
+${document.getElementById("rules").value}
+
+GENERAR:
+9 direcciones visuales distintas para la serie.
+01 debe funcionar como HERO.
+02–09 deben ampliar el lenguaje de la colección sin clonar el HERO.
+Presentar las 9 direcciones en un CONTACTSHEET coherente y profesional.`;
+ document.getElementById("output").textContent=prompt;
+}
+
+function copyPrompt(){
+ const text=document.getElementById("output").textContent;
+ navigator.clipboard.writeText(text).then(()=>showToast("Prompt copiado"));
+}
+function showToast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1400)}
+function resetAll(){location.reload()}
+generate();
+</script>
+</body>
+</html>
+'''
+
+path = Path("/mnt/data/motor_lenguajes_visuales_pod_gospel.html")
+path.write_text(html, encoding="utf-8")
+print(f"Archivo creado: {path}")
